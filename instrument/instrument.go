@@ -20,7 +20,7 @@ var appName string
 var boarToken string
 var boarEnv string
 var boarTransmit bool
-var boarEndpoint = "http://localhost:3000"
+var boarEndpoint = "https://push.boar.io"
 
 func Start(token string, env string, app string) {
 	boarToken = token
