@@ -92,6 +92,7 @@ type Request struct {
 	Params    map[string]string `json:"params"`
 	Env       string            `json:"env"`
 	Events    Tracer            `json:"events"`
+	Status    int               `json:"status"`
 }
 
 type Tracer struct {
@@ -124,13 +125,14 @@ func NewRequest(hostname string, uri string, endpoint string, method string, par
 	return req
 }
 
-func (r *Request) Stop(root *Tracer, reqid string, hop string) {
+func (r *Request) Stop(root *Tracer, reqid string, hop string, status int) {
 	r.Events = *root
 	// for k, v := range c.Request().Header {
 	// 	req.Headers[k] = v[0]
 	// }
 	r.RequestID = reqid
 	r.HopCount = hop
+	r.Status = status
 	r.StoppedAt = time.Now()
 	l := float64(r.StoppedAt.Sub(r.StartedAt).Nanoseconds()) / 1000000.0
 	parsed := strconv.FormatFloat(l, 'f', 4, 64)
