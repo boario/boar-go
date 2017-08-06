@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strconv"
 	"time"
 )
@@ -90,6 +91,7 @@ type Request struct {
 	StartedAt time.Time         `json:"start"`
 	StoppedAt time.Time         `json:"stop"`
 	Params    map[string]string `json:"params"`
+	Headers   map[string]string `json:"headers"`
 	Env       string            `json:"env"`
 	Events    Tracer            `json:"events"`
 	Status    int               `json:"status"`
@@ -113,6 +115,7 @@ func NewRequest(hostname string, uri string, endpoint string, method string, par
 		Hostname: hostname,
 		//Headers:  map[string]string{},
 		Params:    map[string]string{},
+		Headers:   map[string]string{},
 		Env:       boarEnv,
 		App:       appName,
 		StartedAt: time.Now(),
@@ -125,7 +128,7 @@ func NewRequest(hostname string, uri string, endpoint string, method string, par
 	return req
 }
 
-func (r *Request) Stop(root *Tracer, reqid string, hop string, status int) {
+func (r *Request) Stop(root *Tracer, reqid string, hop string, status int, headers http.Header) {
 	r.Events = *root
 	// for k, v := range c.Request().Header {
 	// 	req.Headers[k] = v[0]
@@ -133,6 +136,12 @@ func (r *Request) Stop(root *Tracer, reqid string, hop string, status int) {
 	r.RequestID = reqid
 	r.HopCount = hop
 	r.Status = status
+	reg := regexp.MustCompile("^X-")
+	for h, v := range headers {
+		if h != "Authorization" && !reg.MatchString(h) {
+			r.Headers[h] = v[0]
+		}
+	}
 	r.StoppedAt = time.Now()
 	l := float64(r.StoppedAt.Sub(r.StartedAt).Nanoseconds()) / 1000000.0
 	parsed := strconv.FormatFloat(l, 'f', 4, 64)
