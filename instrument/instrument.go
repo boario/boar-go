@@ -136,9 +136,9 @@ func (r *Request) Stop(root *Tracer, reqid string, hop string, status int, heade
 	r.RequestID = reqid
 	r.HopCount = hop
 	r.Status = status
-	reg := regexp.MustCompile("^X-")
+	reg := regexp.MustCompile("^(X-|Cookie|Authorization|If-)")
 	for h, v := range headers {
-		if h != "Authorization" && !reg.MatchString(h) {
+		if !reg.MatchString(h) {
 			r.Headers[h] = v[0]
 		}
 	}
