@@ -10,6 +10,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -105,6 +106,7 @@ type Tracer struct {
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	Parent      *Tracer   `json:"-"`
+	lock        sync.Mutex
 }
 
 func NewRequest(hostname string, uri string, endpoint string, method string, params url.Values) Request {
@@ -164,7 +166,9 @@ func NewTracer(parent *Tracer, name string, desc string) (t *Tracer) {
 // instrument
 func (t *Tracer) Instrument(name string, desc string, f func(*Tracer)) {
 	newT := NewTracer(t, name, desc)
+	t.lock.Lock()
 	t.Tree = append(t.Tree, newT)
+	t.lock.Unlock()
 	f(t)
 	newT.Stop()
 }
